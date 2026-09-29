@@ -1,0 +1,14 @@
+<launch>
+  <arg name="config" default="$(find waypoint_visualization)/config/waypoints.yaml"/>
+  <arg name="marker_topic" default="/waypoints/markers"/>
+  <arg name="map_topic" default="/map"/>
+
+  <node pkg="waypoint_visualization"
+        type="waypoint_marker.py"
+        name="waypoint_marker"
+        output="screen">
+    <rosparam command="load" file="$(arg config)"/>
+    <param name="marker_topic" value="$(arg marker_topic)"/>
+    <param name="map_topic" value="$(arg map_topic)"/>
+  </node>
+</launch>

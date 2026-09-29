@@ -1,0 +1,22 @@
+<launch>
+  <!-- map_yaml 必须是 map_server 使用的地图 YAML，不是 PGM 文件本身。 -->
+  <arg name="map_yaml"/>
+  <arg name="waypoints_config"
+       default="$(find waypoint_visualization)/config/waypoints.yaml"/>
+
+  <node pkg="map_server"
+        type="map_server"
+        name="map_server"
+        args="$(arg map_yaml)"
+        output="screen"/>
+
+  <include file="$(find waypoint_visualization)/launch/waypoints.launch">
+    <arg name="config" value="$(arg waypoints_config)"/>
+  </include>
+
+  <node pkg="rviz"
+        type="rviz"
+        name="rviz"
+        args="-d $(find waypoint_visualization)/rviz/waypoints.rviz"
+        output="screen"/>
+</launch>

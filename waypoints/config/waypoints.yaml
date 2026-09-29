@@ -1,0 +1,39 @@
+# 航点显示所使用的 TF 坐标系。应与 map_server 发布的地图坐标系一致。
+frame_id: map
+
+# map:   x/y 是 map 坐标系中的米制坐标（推荐）。
+# pixel: u/v 是原始 PGM 图片中以左上角为原点的像素坐标。
+coordinate_mode: map
+
+# pixel 模式需要监听 OccupancyGrid，以读取地图尺寸、分辨率和原点。
+map_topic: /map
+marker_topic: /waypoints/markers
+
+style:
+  point_diameter: 0.30
+  point_height: 0.12
+  arrow_length: 0.55
+  arrow_width: 0.10
+  arrow_height: 0.10
+  text_height: 0.24
+  text_z: 0.42
+  line_width: 0.06
+
+# yaw_deg 始终表示相对 map 坐标系 +X 方向的逆时针角度。
+# map 模式填写 x/y；如切换到 pixel 模式，则将每项改成 u/v。
+waypoints:
+  - id: 1
+    name: 起点
+    x: 0.0
+    y: 0.0
+    yaw_deg: 0.0
+  - id: 2
+    name: 航点2
+    x: 1.5
+    y: 0.0
+    yaw_deg: 90.0
+  - id: 3
+    name: 终点
+    x: 1.5
+    y: 1.5
+    yaw_deg: 180.0

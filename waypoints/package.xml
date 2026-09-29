@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>waypoint_visualization</name>
+  <version>0.1.0</version>
+  <description>Display configured waypoints over a ROS occupancy-grid map in RViz.</description>
+
+  <maintainer email="oamr@example.com">oamr</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>rospy</depend>
+  <depend>visualization_msgs</depend>
+
+  <exec_depend>map_server</exec_depend>
+  <exec_depend>rviz</exec_depend>
+</package>
