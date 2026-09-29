@@ -29,7 +29,6 @@ private Q_SLOTS:
 
 private:
   void actionCallback(const std_msgs::String::ConstPtr& message);
-  void setActionStyle(const QString& action);
 
   ros::NodeHandle node_handle_;
   ros::Subscriber action_subscriber_;

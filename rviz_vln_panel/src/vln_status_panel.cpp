@@ -165,7 +165,7 @@ VlnStatusPanel::VlnStatusPanel(QWidget* parent)
 
   QVBoxLayout* left_legend = new QVBoxLayout();
   left_legend->setContentsMargins(0, 0, 0, 0);
-  left_legend->setSpacing(1);
+  left_legend->setSpacing(8);
   left_legend->addWidget(
       makeLegendItem(QString::fromUtf8("自由区域"), "#ffffff", "square", legend_card));
   left_legend->addWidget(
@@ -177,7 +177,7 @@ VlnStatusPanel::VlnStatusPanel(QWidget* parent)
 
   QVBoxLayout* right_legend = new QVBoxLayout();
   right_legend->setContentsMargins(0, 0, 0, 0);
-  right_legend->setSpacing(1);
+  right_legend->setSpacing(8);
   right_legend->addWidget(
       makeLegendItem(QString::fromUtf8("中间航点"), "#19d926", "square", legend_card));
   right_legend->addWidget(
@@ -213,7 +213,6 @@ VlnStatusPanel::VlnStatusPanel(QWidget* parent)
   action_subscriber_ = node_handle_.subscribe(
       "/vln/action", 10, &VlnStatusPanel::actionCallback, this);
 
-  setActionStyle(QString());
   QTimer::singleShot(0, this, &VlnStatusPanel::dockAtBottom);
 }
 
@@ -259,9 +258,6 @@ void VlnStatusPanel::updateAction(const QString& payload)
   if (clean_payload.isEmpty())
   {
     action_value_->setText("INVALID ACTION");
-    action_value_->setStyleSheet(
-        "background: #b91c1c; border: none; border-radius: 6px; "
-        "color: white; font-size: 19px; font-weight: 800;");
     return;
   }
 
@@ -274,9 +270,6 @@ void VlnStatusPanel::updateAction(const QString& payload)
     if (parse_error.error != QJsonParseError::NoError || !document.isObject())
     {
       action_value_->setText("INVALID ACTION");
-      action_value_->setStyleSheet(
-          "background: #b91c1c; border: none; border-radius: 6px; "
-          "color: white; font-size: 19px; font-weight: 800;");
       return;
     }
     action = document.object().value("action").toString().trimmed();
@@ -286,38 +279,12 @@ void VlnStatusPanel::updateAction(const QString& payload)
   if (action.isEmpty())
   {
     action_value_->setText("INVALID ACTION");
-    action_value_->setStyleSheet(
-        "background: #b91c1c; border: none; border-radius: 6px; "
-        "color: white; font-size: 19px; font-weight: 800;");
     return;
   }
 
   ++step_count_;
   step_value_->setText(QString::number(step_count_));
   action_value_->setText(action);
-  setActionStyle(action);
-}
-
-void VlnStatusPanel::setActionStyle(const QString& action)
-{
-  QString color = "#64748b";
-  if (action == "MOVE_FORWARD")
-  {
-    color = "#2563eb";
-  }
-  else if (action == "TURN_LEFT" || action == "TURN_RIGHT")
-  {
-    color = "#d97706";
-  }
-  else if (action == "STOP")
-  {
-    color = "#dc2626";
-  }
-
-  action_value_->setStyleSheet(
-      "background: " + color +
-      "; border: none; border-radius: 6px; color: white; "
-      "font-size: 19px; font-weight: 800;");
 }
 
 }  // namespace rviz_vln_panel
