@@ -12,28 +12,19 @@ marker_topic: /waypoints/markers
 style:
   point_diameter: 0.30
   point_height: 0.12
-  arrow_length: 0.55
-  arrow_width: 0.10
-  arrow_height: 0.10
+  marker_z: 0.05
   text_height: 0.24
   text_z: 0.42
   line_width: 0.06
+  dash_length: 0.25
+  dash_gap: 0.12
 
-# yaw_deg 始终表示相对 map 坐标系 +X 方向的逆时针角度。
-# map 模式填写 x/y；如切换到 pixel 模式，则将每项改成 u/v。
+# 列表第一项是起点、最后一项是终点，其余是中间点。
+# map 模式只需填写 x/y；如切换到 pixel 模式，则只填写 u/v。
 waypoints:
-  - id: 1
-    name: 起点
-    x: 0.0
+  - x: 0.0
     y: 0.0
-    yaw_deg: 0.0
-  - id: 2
-    name: 航点2
-    x: 1.5
+  - x: 1.5
     y: 0.0
-    yaw_deg: 90.0
-  - id: 3
-    name: 终点
-    x: 1.5
+  - x: 1.5
     y: 1.5
-    yaw_deg: 180.0

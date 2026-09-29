@@ -144,6 +144,30 @@ class WaypointMarkerNode:
         marker.color.b = blue
         marker.color.a = alpha
 
+    @staticmethod
+    def _append_dashed_segment(marker, start, end, dash_length, dash_gap):
+        """Append one dashed segment to a LINE_LIST marker."""
+        delta_x = end.x - start.x
+        delta_y = end.y - start.y
+        delta_z = end.z - start.z
+        distance = math.sqrt(delta_x ** 2 + delta_y ** 2 + delta_z ** 2)
+        if distance <= 1e-9:
+            return
+
+        cursor = 0.0
+        while cursor < distance:
+            dash_end = min(cursor + dash_length, distance)
+            for position in (cursor, dash_end):
+                ratio = position / distance
+                marker.points.append(
+                    Point(
+                        x=start.x + delta_x * ratio,
+                        y=start.y + delta_y * ratio,
+                        z=start.z + delta_z * ratio,
+                    )
+                )
+            cursor += dash_length + dash_gap
+
     def _publish(self, positions):
         output = MarkerArray()
 
@@ -151,52 +175,66 @@ class WaypointMarkerNode:
         clear.action = Marker.DELETEALL
         output.markers.append(clear)
 
-        path = self._new_marker("waypoint_path", 0, Marker.LINE_STRIP)
+        path = self._new_marker("waypoint_path", 0, Marker.LINE_LIST)
         path.scale.x = self._style_value("line_width", 0.06)
-        self._set_color(path, 0.10, 0.75, 1.00, 0.85)
+        self._set_color(path, 0.10, 0.90, 0.15, 0.95)
+        dash_length = self._style_value("dash_length", 0.25)
+        dash_gap = self._style_value("dash_gap", 0.12)
+        if dash_length <= 0.0 or dash_gap < 0.0:
+            raise rospy.ROSInitException(
+                "~style/dash_length must be positive and dash_gap cannot be negative"
+            )
+
+        path_positions = []
+        last_index = len(self.waypoints) - 1
 
         for index, (item, position) in enumerate(zip(self.waypoints, positions)):
             x, y = position
             marker_id = int(item.get("id", index + 1))
-            label = str(item.get("name", "WP{}".format(marker_id)))
-            yaw = math.radians(float(item.get("yaw_deg", 0.0)))
-            z = float(item.get("z", 0.05))
+            label = str(item.get("name", "")).strip()
+            z = self._style_value("marker_z", 0.05)
 
-            point = self._new_marker("waypoint_points", marker_id, Marker.CYLINDER)
+            if index == 0:
+                point_type = Marker.CYLINDER
+                point_color = (0.05, 0.35, 1.00)  # Start: blue cylinder.
+            elif index == last_index:
+                point_type = Marker.CYLINDER
+                point_color = (1.00, 0.08, 0.05)  # Goal: red cylinder.
+            else:
+                point_type = Marker.CUBE
+                point_color = (0.10, 0.90, 0.15)  # Intermediate: green cube.
+
+            point = self._new_marker("waypoint_points", marker_id, point_type)
             point.pose.position.x = x
             point.pose.position.y = y
             point.pose.position.z = z
             point.scale.x = self._style_value("point_diameter", 0.30)
             point.scale.y = point.scale.x
             point.scale.z = self._style_value("point_height", 0.12)
-            self._set_color(point, 1.00, 0.30, 0.08, 0.95)
+            self._set_color(point, *point_color, alpha=0.98)
             output.markers.append(point)
 
-            arrow = self._new_marker("waypoint_headings", marker_id, Marker.ARROW)
-            arrow.pose.position.x = x
-            arrow.pose.position.y = y
-            arrow.pose.position.z = z + point.scale.z * 0.5
-            arrow.pose.orientation.z = math.sin(yaw * 0.5)
-            arrow.pose.orientation.w = math.cos(yaw * 0.5)
-            arrow.scale.x = self._style_value("arrow_length", 0.55)
-            arrow.scale.y = self._style_value("arrow_width", 0.10)
-            arrow.scale.z = self._style_value("arrow_height", 0.10)
-            self._set_color(arrow, 1.00, 0.85, 0.05, 1.00)
-            output.markers.append(arrow)
-
-            text = self._new_marker("waypoint_labels", marker_id, Marker.TEXT_VIEW_FACING)
-            text.pose.position.x = x
-            text.pose.position.y = y
-            text.pose.position.z = z + self._style_value("text_z", 0.42)
-            text.scale.z = self._style_value("text_height", 0.24)
-            text.text = "{}: {}".format(marker_id, label)
-            self._set_color(text, 1.00, 1.00, 1.00, 1.00)
-            output.markers.append(text)
+            if label:
+                text = self._new_marker(
+                    "waypoint_labels", marker_id, Marker.TEXT_VIEW_FACING
+                )
+                text.pose.position.x = x
+                text.pose.position.y = y
+                text.pose.position.z = z + self._style_value("text_z", 0.42)
+                text.scale.z = self._style_value("text_height", 0.24)
+                text.text = label
+                self._set_color(text, 1.00, 1.00, 1.00, 1.00)
+                output.markers.append(text)
 
             path_point = Point(x=x, y=y, z=z + 0.02)
-            path.points.append(path_point)
+            path_positions.append(path_point)
 
-        if len(path.points) >= 2:
+        for start, end in zip(path_positions, path_positions[1:]):
+            self._append_dashed_segment(
+                path, start, end, dash_length, dash_gap
+            )
+
+        if path.points:
             output.markers.append(path)
 
         self.publisher.publish(output)
