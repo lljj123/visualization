@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>current_path_visualization</name>
+  <version>0.1.0</version>
+  <description>Publish the current robot run as a nav_msgs/Path from TF.</description>
+
+  <maintainer email="oamr@example.com">oamr</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>rospy</depend>
+  <depend>tf2_ros</depend>
+</package>
