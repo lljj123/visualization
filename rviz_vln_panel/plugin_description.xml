@@ -3,8 +3,8 @@
          type="rviz_vln_panel::VlnStatusPanel"
          base_class_type="rviz::Panel">
     <description>
-      Displays the current VLN instruction, action step, action, and the
-      occupancy-grid/waypoint legend in a dockable RViz panel.
+      Provides a local VLN instruction editor and displays the current action,
+      locally counted action step, and navigation legend in a dockable panel.
     </description>
   </class>
 </library>

@@ -3,7 +3,6 @@
   <arg name="map_topic" default="/map"/>
   <arg name="path_topic" default="/current_path"/>
   <arg name="waypoint_topic" default="/waypoints/markers"/>
-  <arg name="instruction_topic" default="/vln/instruction"/>
   <arg name="action_topic" default="/vln/action"/>
   <arg name="start_current_path" default="true"/>
   <arg name="start_waypoints" default="true"/>
@@ -33,7 +32,6 @@
     <remap from="/map" to="$(arg map_topic)"/>
     <remap from="/current_path" to="$(arg path_topic)"/>
     <remap from="/waypoints/markers" to="$(arg waypoint_topic)"/>
-    <remap from="/vln/instruction" to="$(arg instruction_topic)"/>
     <remap from="/vln/action" to="$(arg action_topic)"/>
   </node>
 </launch>

@@ -8,6 +8,7 @@
 #include <QString>
 
 class QLabel;
+class QPlainTextEdit;
 
 namespace rviz_vln_panel
 {
@@ -20,24 +21,20 @@ public:
   explicit VlnStatusPanel(QWidget* parent = nullptr);
 
 Q_SIGNALS:
-  void instructionMessage(const QString& instruction);
   void actionMessage(const QString& payload);
 
 private Q_SLOTS:
   void dockAtBottom();
-  void updateInstruction(const QString& instruction);
   void updateAction(const QString& payload);
 
 private:
-  void instructionCallback(const std_msgs::String::ConstPtr& message);
   void actionCallback(const std_msgs::String::ConstPtr& message);
   void setActionStyle(const QString& action);
 
   ros::NodeHandle node_handle_;
-  ros::Subscriber instruction_subscriber_;
   ros::Subscriber action_subscriber_;
 
-  QLabel* instruction_value_;
+  QPlainTextEdit* instruction_editor_;
   QLabel* step_value_;
   QLabel* action_value_;
   unsigned long step_count_;

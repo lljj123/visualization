@@ -3,7 +3,6 @@
 #include <pluginlib/class_list_macros.h>
 
 #include <QFrame>
-#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QDockWidget>
 #include <QJsonDocument>
@@ -11,6 +10,7 @@
 #include <QJsonParseError>
 #include <QLabel>
 #include <QMainWindow>
+#include <QPlainTextEdit>
 #include <QSizePolicy>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -23,8 +23,19 @@ QLabel* makeSectionTitle(const QString& text, QWidget* parent)
 {
   QLabel* label = new QLabel(text, parent);
   label->setStyleSheet(
-      "color: #334155; font-size: 13px; font-weight: 700;");
+      "color: #172554; font-size: 16px; font-weight: 700;");
   return label;
+}
+
+QFrame* makeCard(QWidget* parent)
+{
+  QFrame* card = new QFrame(parent);
+  card->setObjectName("vlnCard");
+  card->setFrameShape(QFrame::NoFrame);
+  card->setStyleSheet(
+      "QFrame#vlnCard { background: #ffffff; border: 1px solid #dbe5f0; "
+      "border-radius: 10px; }");
+  return card;
 }
 
 QFrame* makeStatusCard(
@@ -33,23 +44,19 @@ QFrame* makeStatusCard(
     QLabel** value_label,
     QWidget* parent)
 {
-  QFrame* card = new QFrame(parent);
-  card->setFrameShape(QFrame::NoFrame);
-  card->setStyleSheet(
-      "QFrame { background: #f8fafc; border: 1px solid #dbe3ec; "
-      "border-radius: 8px; }");
+  QFrame* card = makeCard(parent);
 
   QVBoxLayout* layout = new QVBoxLayout(card);
-  layout->setContentsMargins(14, 10, 14, 10);
-  layout->setSpacing(5);
+  layout->setContentsMargins(16, 14, 16, 14);
+  layout->setSpacing(10);
 
   QLabel* title_label = makeSectionTitle(title, card);
   *value_label = new QLabel(initial_value, card);
   (*value_label)->setAlignment(Qt::AlignCenter);
-  (*value_label)->setMinimumHeight(40);
+  (*value_label)->setMinimumHeight(100);
   (*value_label)->setStyleSheet(
-      "background: transparent; border: none; color: #0f172a; "
-      "font-size: 23px; font-weight: 800;");
+      "background: #f5f8fc; border: 1px solid #e5edf6; border-radius: 8px; "
+      "color: #0f172a; font-size: 25px; font-weight: 800;");
 
   layout->addWidget(title_label);
   layout->addWidget(*value_label, 1);
@@ -63,29 +70,38 @@ QWidget* makeLegendItem(
     QWidget* parent)
 {
   QWidget* item = new QWidget(parent);
+  item->setMinimumHeight(33);
+  item->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   QHBoxLayout* layout = new QHBoxLayout(item);
-  layout->setContentsMargins(0, 2, 6, 2);
-  layout->setSpacing(7);
+  layout->setContentsMargins(0, 2, 2, 2);
+  layout->setSpacing(9);
 
   QFrame* swatch = new QFrame(item);
   QString style = "background: " + color + "; border: 1px solid #64748b;";
   if (shape == "line")
   {
-    swatch->setFixedSize(28, 5);
+    swatch->setFixedSize(34, 6);
     style += " border-radius: 2px;";
   }
   else
   {
-    swatch->setFixedSize(18, 18);
-    style += shape == "circle" ? " border-radius: 9px;" : " border-radius: 2px;";
+    swatch->setFixedSize(22, 22);
+    style += shape == "circle" ? " border-radius: 11px;" : " border-radius: 3px;";
   }
   swatch->setStyleSheet(style);
 
+  QWidget* swatch_slot = new QWidget(item);
+  swatch_slot->setFixedSize(38, 26);
+  QHBoxLayout* swatch_layout = new QHBoxLayout(swatch_slot);
+  swatch_layout->setContentsMargins(0, 0, 0, 0);
+  swatch_layout->addWidget(swatch, 0, Qt::AlignCenter);
+
   QLabel* label = new QLabel(text, item);
-  label->setStyleSheet("color: #1e293b; font-size: 12px;");
+  label->setStyleSheet(
+      "color: #172554; font-size: 15px; font-weight: 600;");
   label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
-  layout->addWidget(swatch, 0, Qt::AlignVCenter);
+  layout->addWidget(swatch_slot, 0, Qt::AlignVCenter);
   layout->addWidget(label, 1, Qt::AlignVCenter);
   return item;
 }
@@ -97,88 +113,96 @@ namespace rviz_vln_panel
 
 VlnStatusPanel::VlnStatusPanel(QWidget* parent)
   : rviz::Panel(parent)
-  , instruction_value_(nullptr)
+  , instruction_editor_(nullptr)
   , step_value_(nullptr)
   , action_value_(nullptr)
   , step_count_(0)
   , dock_attempts_(0)
 {
-  setMinimumSize(720, 245);
+  setMinimumSize(980, 240);
   setStyleSheet("rviz_vln_panel--VlnStatusPanel { background: #eef2f7; }");
 
-  QVBoxLayout* root_layout = new QVBoxLayout(this);
-  root_layout->setContentsMargins(14, 12, 14, 12);
-  root_layout->setSpacing(10);
+  QHBoxLayout* root_layout = new QHBoxLayout(this);
+  root_layout->setContentsMargins(12, 12, 12, 12);
+  root_layout->setSpacing(12);
 
-  QFrame* instruction_card = new QFrame(this);
-  instruction_card->setStyleSheet(
-      "QFrame { background: #ffffff; border: 1px solid #dbe3ec; "
-      "border-radius: 8px; }");
+  QFrame* instruction_card = makeCard(this);
   QVBoxLayout* instruction_layout = new QVBoxLayout(instruction_card);
-  instruction_layout->setContentsMargins(14, 10, 14, 10);
-  instruction_layout->setSpacing(6);
-  instruction_layout->addWidget(makeSectionTitle("VLN INSTRUCTION", instruction_card));
+  instruction_layout->setContentsMargins(16, 14, 16, 14);
+  instruction_layout->setSpacing(10);
+  QLabel* instruction_title = makeSectionTitle("INSTRUCTION", instruction_card);
+  instruction_title->setStyleSheet(
+      "color: #0f172a; font-size: 18px; font-weight: 800;");
+  instruction_layout->addWidget(instruction_title);
 
-  instruction_value_ = new QLabel(
-      QString::fromUtf8("等待 /vln/instruction ..."), instruction_card);
-  instruction_value_->setWordWrap(true);
-  instruction_value_->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-  instruction_value_->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  instruction_value_->setMinimumHeight(42);
-  instruction_value_->setStyleSheet(
-      "background: transparent; border: none; color: #0f172a; "
-      "font-size: 16px; font-weight: 650;");
-  instruction_layout->addWidget(instruction_value_);
-  root_layout->addWidget(instruction_card);
+  instruction_editor_ = new QPlainTextEdit(instruction_card);
+  instruction_editor_->setPlaceholderText(
+      QString::fromUtf8("在这里输入导航指令…"));
+  instruction_editor_->setMinimumHeight(100);
+  instruction_editor_->setStyleSheet(
+      "QPlainTextEdit { background: #f5f8fc; border: 1px solid #e5edf6; "
+      "border-radius: 8px; padding: 12px; color: #0f172a; "
+      "font-size: 17px; font-weight: 600; selection-background-color: #bfdbfe; }");
+  instruction_layout->addWidget(instruction_editor_, 1);
+  root_layout->addWidget(instruction_card, 7);
 
-  QHBoxLayout* status_layout = new QHBoxLayout();
-  status_layout->setContentsMargins(0, 0, 0, 0);
-  status_layout->setSpacing(10);
-  status_layout->addWidget(
-      makeStatusCard(QString::fromUtf8("当前步数"), "0", &step_value_, this), 1);
-  status_layout->addWidget(
-      makeStatusCard("CURRENT ACTION", "WAITING", &action_value_, this), 2);
-  root_layout->addLayout(status_layout);
+  QFrame* step_card =
+      makeStatusCard(QString::fromUtf8("当前步数"), "0", &step_value_, this);
+  step_value_->setStyleSheet(
+      "background: #f5f8fc; border: 1px solid #e5edf6; border-radius: 8px; "
+      "color: #1267e5; font-size: 42px; font-weight: 800;");
+  root_layout->addWidget(step_card, 2);
 
-  QFrame* legend_card = new QFrame(this);
-  legend_card->setStyleSheet(
-      "QFrame { background: #ffffff; border: 1px solid #dbe3ec; "
-      "border-radius: 8px; }");
+  QFrame* action_card =
+      makeStatusCard("ACTION", "WAITING", &action_value_, this);
+  root_layout->addWidget(action_card, 3);
+
+  QFrame* legend_card = makeCard(this);
+  legend_card->setMinimumWidth(430);
   QVBoxLayout* legend_layout = new QVBoxLayout(legend_card);
-  legend_layout->setContentsMargins(14, 8, 14, 8);
-  legend_layout->setSpacing(5);
-  legend_layout->addWidget(
-      makeSectionTitle(QString::fromUtf8("地图与导航图例"), legend_card));
+  legend_layout->setContentsMargins(14, 12, 14, 12);
+  legend_layout->setSpacing(0);
 
-  QGridLayout* legend_grid = new QGridLayout();
-  legend_grid->setContentsMargins(0, 0, 0, 0);
-  legend_grid->setHorizontalSpacing(12);
-  legend_grid->setVerticalSpacing(3);
-  legend_grid->addWidget(
-      makeLegendItem(QString::fromUtf8("自由区域"), "#ffffff", "square", legend_card), 0, 0);
-  legend_grid->addWidget(
-      makeLegendItem(QString::fromUtf8("障碍物"), "#111827", "square", legend_card), 0, 1);
-  legend_grid->addWidget(
-      makeLegendItem(QString::fromUtf8("未知区域"), "#808080", "square", legend_card), 0, 2);
-  legend_grid->addWidget(
-      makeLegendItem(QString::fromUtf8("起点"), "#0d59ff", "circle", legend_card), 0, 3);
-  legend_grid->addWidget(
-      makeLegendItem(QString::fromUtf8("中间航点"), "#19d926", "square", legend_card), 1, 0);
-  legend_grid->addWidget(
-      makeLegendItem(QString::fromUtf8("终点"), "#ff140d", "circle", legend_card), 1, 1);
-  legend_grid->addWidget(
-      makeLegendItem(QString::fromUtf8("航点连线"), "#19d926", "line", legend_card), 1, 2);
-  legend_grid->addWidget(
-      makeLegendItem(QString::fromUtf8("当前轨迹"), "#1f45b5", "line", legend_card), 1, 3);
-  legend_layout->addLayout(legend_grid);
-  root_layout->addWidget(legend_card);
+  QVBoxLayout* left_legend = new QVBoxLayout();
+  left_legend->setContentsMargins(0, 0, 0, 0);
+  left_legend->setSpacing(1);
+  left_legend->addWidget(
+      makeLegendItem(QString::fromUtf8("自由区域"), "#ffffff", "square", legend_card));
+  left_legend->addWidget(
+      makeLegendItem(QString::fromUtf8("障碍物"), "#111827", "square", legend_card));
+  left_legend->addWidget(
+      makeLegendItem(QString::fromUtf8("未知区域"), "#808080", "square", legend_card));
+  left_legend->addWidget(
+      makeLegendItem(QString::fromUtf8("起点"), "#0d59ff", "circle", legend_card));
 
-  connect(
-      this,
-      &VlnStatusPanel::instructionMessage,
-      this,
-      &VlnStatusPanel::updateInstruction,
-      Qt::QueuedConnection);
+  QVBoxLayout* right_legend = new QVBoxLayout();
+  right_legend->setContentsMargins(0, 0, 0, 0);
+  right_legend->setSpacing(1);
+  right_legend->addWidget(
+      makeLegendItem(QString::fromUtf8("中间航点"), "#19d926", "square", legend_card));
+  right_legend->addWidget(
+      makeLegendItem(QString::fromUtf8("终点"), "#ff140d", "circle", legend_card));
+  right_legend->addWidget(
+      makeLegendItem(QString::fromUtf8("航点连线"), "#19d926", "line", legend_card));
+  right_legend->addWidget(
+      makeLegendItem(QString::fromUtf8("当前轨迹"), "#1f45b5", "line", legend_card));
+
+  QFrame* legend_divider = new QFrame(legend_card);
+  legend_divider->setFrameShape(QFrame::VLine);
+  legend_divider->setFrameShadow(QFrame::Plain);
+  legend_divider->setStyleSheet("color: #dbe5f0;");
+
+  QHBoxLayout* legend_columns = new QHBoxLayout();
+  legend_columns->setContentsMargins(0, 0, 0, 0);
+  legend_columns->setSpacing(14);
+  legend_columns->addLayout(left_legend, 1);
+  legend_columns->addWidget(legend_divider);
+  legend_columns->addLayout(right_legend, 1);
+  legend_layout->addStretch(1);
+  legend_layout->addLayout(legend_columns, 1);
+  legend_layout->addStretch(1);
+  root_layout->addWidget(legend_card, 3);
+
   connect(
       this,
       &VlnStatusPanel::actionMessage,
@@ -186,8 +210,6 @@ VlnStatusPanel::VlnStatusPanel(QWidget* parent)
       &VlnStatusPanel::updateAction,
       Qt::QueuedConnection);
 
-  instruction_subscriber_ = node_handle_.subscribe(
-      "/vln/instruction", 1, &VlnStatusPanel::instructionCallback, this);
   action_subscriber_ = node_handle_.subscribe(
       "/vln/action", 10, &VlnStatusPanel::actionCallback, this);
 
@@ -214,8 +236,8 @@ void VlnStatusPanel::dockAtBottom()
   if (dock_widget != nullptr && main_window != nullptr)
   {
     main_window->addDockWidget(Qt::BottomDockWidgetArea, dock_widget);
-    dock_widget->setMinimumWidth(720);
-    dock_widget->setMinimumHeight(245);
+    dock_widget->setMinimumWidth(980);
+    dock_widget->setMinimumHeight(240);
     return;
   }
 
@@ -226,21 +248,9 @@ void VlnStatusPanel::dockAtBottom()
   }
 }
 
-void VlnStatusPanel::instructionCallback(const std_msgs::String::ConstPtr& message)
-{
-  Q_EMIT instructionMessage(QString::fromStdString(message->data));
-}
-
 void VlnStatusPanel::actionCallback(const std_msgs::String::ConstPtr& message)
 {
   Q_EMIT actionMessage(QString::fromStdString(message->data));
-}
-
-void VlnStatusPanel::updateInstruction(const QString& instruction)
-{
-  const QString clean_instruction = instruction.trimmed();
-  instruction_value_->setText(
-      clean_instruction.isEmpty() ? QString::fromUtf8("当前指令为空") : clean_instruction);
 }
 
 void VlnStatusPanel::updateAction(const QString& payload)

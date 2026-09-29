@@ -1,18 +1,20 @@
 # RViz VLN dashboard
 
+![RViz VLN dashboard demo](docs/vln_dashboard_demo.png)
+
 该包为 ROS1 Noetic 提供一个可停靠的 RViz Panel，在同一个 RViz 窗口中显示：
 
 - 摄像头第一视角：RViz 原生 `Image`，默认 `/camera/rgb/image_raw`。
 - 栅格地图和 URDF 小车：`/map`、`/robot_description` 和 TF。
 - 当前运行轨迹：`/current_path`。
 - 航点：`/waypoints/markers`。
-- VLN 指令：订阅 `/vln/instruction`，类型为 `std_msgs/String`。
+- VLN 指令：直接在 RViz 面板的文本框内输入，不订阅 ROS topic。
 - 当前 Action：订阅 `/vln/action`，类型为 `std_msgs/String`。
 - 当前步数：面板启动时从 0 开始，每收到一条有效 Action 自动加 1。
 - 栅格地图、航点和轨迹颜色图例。
 
 RViz 原生 Display 负责订阅地图、轨迹、航点、相机和 RobotModel；
-`VlnStatusPanel` 本身只订阅指令和 Action，不解析 VLN 推理 metrics。
+`VlnStatusPanel` 本身只订阅 Action，不订阅指令话题，也不解析 VLN 推理 metrics。
 
 ## 构建
 
@@ -50,10 +52,10 @@ Action topic 不同时可以覆盖：
 roslaunch rviz_vln_panel vln_dashboard.launch action_topic:=/your/action
 ```
 
+启动 RViz 后，直接点击 `VLN INSTRUCTION` 文本框输入导航指令。
 面板接受纯 Action 字符串，也兼容带 `action` 字段的 JSON：
 
 ```bash
-rostopic pub -1 /vln/instruction std_msgs/String "data: 'Exit the room and turn left.'"
 rostopic pub -1 /vln/action std_msgs/String "data: 'MOVE_FORWARD'"
 rostopic pub -1 /vln/action std_msgs/String 'data: '\''{"version":1,"sequence":2,"action":"TURN_LEFT"}'\'''
 ```
