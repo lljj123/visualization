@@ -1,0 +1,10 @@
+<library path="lib/librviz_vln_panel">
+  <class name="rviz_vln_panel/VlnStatusPanel"
+         type="rviz_vln_panel::VlnStatusPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      Displays the current VLN instruction, action step, action, and the
+      occupancy-grid/waypoint legend in a dockable RViz panel.
+    </description>
+  </class>
+</library>

@@ -1,0 +1,39 @@
+<launch>
+  <arg name="camera_topic" default="/camera/rgb/image_raw"/>
+  <arg name="map_topic" default="/map"/>
+  <arg name="path_topic" default="/current_path"/>
+  <arg name="waypoint_topic" default="/waypoints/markers"/>
+  <arg name="instruction_topic" default="/vln/instruction"/>
+  <arg name="action_topic" default="/vln/action"/>
+  <arg name="start_current_path" default="true"/>
+  <arg name="start_waypoints" default="true"/>
+  <arg name="waypoints_config"
+       default="$(find waypoint_visualization)/config/waypoints.yaml"/>
+
+  <group if="$(arg start_current_path)">
+    <include file="$(find current_path_visualization)/launch/current_path.launch">
+      <arg name="path_topic" value="$(arg path_topic)"/>
+    </include>
+  </group>
+
+  <group if="$(arg start_waypoints)">
+    <include file="$(find waypoint_visualization)/launch/waypoints.launch">
+      <arg name="config" value="$(arg waypoints_config)"/>
+      <arg name="marker_topic" value="$(arg waypoint_topic)"/>
+      <arg name="map_topic" value="$(arg map_topic)"/>
+    </include>
+  </group>
+
+  <node pkg="rviz"
+        type="rviz"
+        name="vln_dashboard"
+        args="-d $(find rviz_vln_panel)/rviz/vln_dashboard.rviz"
+        output="screen">
+    <remap from="/camera/rgb/image_raw" to="$(arg camera_topic)"/>
+    <remap from="/map" to="$(arg map_topic)"/>
+    <remap from="/current_path" to="$(arg path_topic)"/>
+    <remap from="/waypoints/markers" to="$(arg waypoint_topic)"/>
+    <remap from="/vln/instruction" to="$(arg instruction_topic)"/>
+    <remap from="/vln/action" to="$(arg action_topic)"/>
+  </node>
+</launch>

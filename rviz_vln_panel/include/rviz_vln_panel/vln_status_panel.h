@@ -1,0 +1,49 @@
+#ifndef RVIZ_VLN_PANEL_VLN_STATUS_PANEL_H
+#define RVIZ_VLN_PANEL_VLN_STATUS_PANEL_H
+
+#include <ros/ros.h>
+#include <rviz/panel.h>
+#include <std_msgs/String.h>
+
+#include <QString>
+
+class QLabel;
+
+namespace rviz_vln_panel
+{
+
+class VlnStatusPanel : public rviz::Panel
+{
+  Q_OBJECT
+
+public:
+  explicit VlnStatusPanel(QWidget* parent = nullptr);
+
+Q_SIGNALS:
+  void instructionMessage(const QString& instruction);
+  void actionMessage(const QString& payload);
+
+private Q_SLOTS:
+  void dockAtBottom();
+  void updateInstruction(const QString& instruction);
+  void updateAction(const QString& payload);
+
+private:
+  void instructionCallback(const std_msgs::String::ConstPtr& message);
+  void actionCallback(const std_msgs::String::ConstPtr& message);
+  void setActionStyle(const QString& action);
+
+  ros::NodeHandle node_handle_;
+  ros::Subscriber instruction_subscriber_;
+  ros::Subscriber action_subscriber_;
+
+  QLabel* instruction_value_;
+  QLabel* step_value_;
+  QLabel* action_value_;
+  unsigned long step_count_;
+  int dock_attempts_;
+};
+
+}  // namespace rviz_vln_panel
+
+#endif  // RVIZ_VLN_PANEL_VLN_STATUS_PANEL_H

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rviz_vln_panel</name>
+  <version>0.1.0</version>
+  <description>RViz dashboard panel for VLN instructions, actions, steps, and map legends.</description>
+
+  <maintainer email="oamr@example.com">oamr</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>pluginlib</depend>
+  <depend>roscpp</depend>
+  <depend>rviz</depend>
+  <depend>std_msgs</depend>
+
+  <build_depend>qtbase5-dev</build_depend>
+  <exec_depend>libqt5-core</exec_depend>
+  <exec_depend>libqt5-gui</exec_depend>
+  <exec_depend>libqt5-widgets</exec_depend>
+  <exec_depend>current_path_visualization</exec_depend>
+  <exec_depend>waypoint_visualization</exec_depend>
+
+  <export>
+    <rviz plugin="${prefix}/plugin_description.xml"/>
+  </export>
+</package>
